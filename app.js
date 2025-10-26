@@ -1,19 +1,85 @@
 import apostrophe from 'apostrophe';
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config();
 
 apostrophe({
   root: import.meta,
-  shortName: 'apos-app',
+  shortName: 'meadow-cms',
+  port: process.env.PORT || 3001,
+  // MongoDB Atlas configuration
+  mongodb: {
+    uri: process.env.APOS_MONGODB_URI
+  },
   modules: {
-    // Apostrophe module configuration
-    // *******************************
-    //
-    // NOTE: most configuration occurs in the respective modules' directories.
-    // See modules/@apostrophecms/page/index.js for an example.
-    //
-    // Any modules that are not present by default in Apostrophe must at least
-    // have a minimal configuration here to turn them on: `moduleName: {}`
-    // ***********************************************************************
-    // `className` options set custom CSS classes for Apostrophe core widgets.
+    // Content Types
+    'blog-post': {},
+    'initiative': {},
+    
+    // Essential ApostropheCMS modules
+    '@apostrophecms/login': {},
+    '@apostrophecms/page': {},
+    '@apostrophecms/home-page': {},
+    '@apostrophecms/settings': {},
+    '@apostrophecms/notification': {},
+    '@apostrophecms/i18n': {},
+    '@apostrophecms/error': {},
+    '@apostrophecms/asset': {},
+    '@apostrophecms/attachment': {},
+    '@apostrophecms/image': {},
+    '@apostrophecms/area': {},
+    '@apostrophecms/widget-type': {},
+    
+    // Session configuration for authentication
+    '@apostrophecms/express': {
+      options: {
+        port: process.env.PORT || 3001,
+        session: {
+          secret: process.env.SESSION_SECRET || 'your-secret-key-here-change-in-production'
+        },
+        // CORS configuration for website integration
+        cors: {
+          origin: [
+            process.env.WEBSITE_URL || 'http://localhost:3000',
+            'https://your-website-domain.com'
+          ],
+          credentials: true,
+          methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+          allowedHeaders: ['Content-Type', 'Authorization']
+        }
+      }
+    },
+    
+    // User management and roles
+    '@apostrophecms/user': {
+      options: {
+        groups: [
+          {
+            name: 'admin',
+            label: 'Administrator',
+            permissions: ['admin']
+          },
+          {
+            name: 'editor',
+            label: 'Editor',
+            permissions: ['edit', 'publish', 'unpublish']
+          },
+          {
+            name: 'author',
+            label: 'Author',
+            permissions: ['edit-own', 'submit-for-review']
+          },
+          {
+            name: 'reviewer',
+            label: 'Reviewer',
+            permissions: ['edit', 'review', 'publish', 'unpublish']
+          }
+        ]
+      }
+    },
+    
+    // Widget configurations
     '@apostrophecms/rich-text-widget': {
       options: {
         className: 'bp-rich-text'
@@ -29,11 +95,14 @@ apostrophe({
         className: 'bp-video-widget'
       }
     },
-    // `asset` supports the project's build for client-side assets.
-    asset: {},
-    // use vite for asset bundling and hot module reloading
+    
+    // Asset configuration
+    '@apostrophecms/asset': {},
+    
+    // Vite for asset bundling
     '@apostrophecms/vite': {},
-    // The project's first custom page type.
+    
+    // Default page type
     'default-page': {}
   }
 });
